@@ -25,12 +25,55 @@ Begin DesktopWindow WindowMain
    Type            =   0
    Visible         =   True
    Width           =   600
+   Begin DesktopButton ButtonTest
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Cancel          =   False
+      Caption         =   "Test"
+      Default         =   False
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   27
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   20
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      MacButtonStyle  =   0
+      Scope           =   0
+      TabIndex        =   0
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Tooltip         =   ""
+      Top             =   20
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      Width           =   100
+   End
 End
 #tag EndDesktopWindow
 
 #tag WindowCode
 #tag EndWindowCode
 
+#tag Events ButtonTest
+	#tag Event
+		Sub Pressed()
+		  Var initSuccess As Boolean
+		  
+		  initSuccess = Llama.BackendInit()
+		  
+		  Llama.BackendFree()
+		  
+		End Sub
+	#tag EndEvent
+#tag EndEvents
 #tag ViewBehavior
 	#tag ViewProperty
 		Name="Name"
