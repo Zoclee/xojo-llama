@@ -27,6 +27,41 @@ Protected Module Llama
 	#tag EndMethod
 
 
+	#tag Structure, Name = ContextParamsStruct, Flags = &h0
+		n_ctx As UInt32
+		  n_batch As UInt32
+		  n_ubatch As UInt32
+		  n_seq_max As UInt32
+		  n_threads As Int32
+		  n_threads_batch As Int32
+		  rope_scaling_type As Int32
+		  pooling_type As Int32
+		  attention_type As Int32
+		  rope_freq_base As Single
+		  rope_freq_scale As Single
+		  yarn_ext_factor As Single
+		  yarn_attn_factor As Single
+		  yarn_beta_fast As Single
+		  yarn_beta_slow As Single
+		  yarn_orig_ctx As UInt32
+		  defrag_thold As Single
+		  pad0 As Int32
+		  cb_eval As Ptr
+		  cb_eval_user_data  As Ptr
+		  type_k As Int32
+		  type_v As Int32
+		  abort_callback As Ptr
+		  abort_callback_data As Ptr
+		  embeddings As Boolean
+		  offload_kqv As Boolean
+		  flash_attn As Boolean
+		  no_perf As Boolean
+		  op_offload As Boolean
+		  swa_full As Boolean
+		  kv_unified As Boolean
+		pad1 As Byte
+	#tag EndStructure
+
 	#tag Structure, Name = ModelParamsStruct, Flags = &h0
 		devices As Ptr
 		  tensor_buft_overrides As Ptr
@@ -48,6 +83,7 @@ Protected Module Llama
 
 	#tag Enum, Name = ErrorEnum, Type = Integer, Flags = &h0
 		ModelLoadFailure = 1
+		ContextFailure = 2
 	#tag EndEnum
 
 
