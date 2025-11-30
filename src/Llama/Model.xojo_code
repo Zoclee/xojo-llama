@@ -6,6 +6,7 @@ Protected Class Model
 		  Soft Declare Function llama_load_model_from_file Lib "llama.dll" (path As CString, ByRef params As Llama.ModelParamsStruct) As Ptr
 		  Soft Declare Sub llama_context_default_params Lib "llama.dll" (Byref params As Llama.ContextParamsStruct)
 		  Soft Declare Function llama_new_context_with_model Lib "llama.dll" (model As Ptr, ByRef params As Llama.ContextParamsStruct) As Ptr
+		  Soft Declare Function llama_model_get_vocab Lib "llama.dll" (model As Ptr) As Ptr
 		  
 		  Var e As Llama.ModelException
 		  
@@ -32,6 +33,17 @@ Protected Class Model
 		    e.Message = "Failed to create context."
 		    Raise e
 		  End If
+		  
+		  ' --- Get pointer to vocab ---
+		  
+		  mVocabPtr = llama_model_get_vocab(mModelPtr)
+		  If mVocabPtr = Nil Then
+		    e = new Llama.ModelException()
+		    e.ErrorNumber = Integer(ErrorEnum.VocabFailure)
+		    e.Message = "Failed to get vocab."
+		    Raise e
+		  End If
+		  
 		  
 		End Sub
 	#tag EndMethod
@@ -74,6 +86,10 @@ Protected Class Model
 
 	#tag Property, Flags = &h0
 		ModelPath As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mVocabPtr As Ptr
 	#tag EndProperty
 
 

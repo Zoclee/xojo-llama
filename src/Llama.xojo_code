@@ -83,7 +83,8 @@ Protected Module Llama
 
 	#tag Enum, Name = ErrorEnum, Type = Integer, Flags = &h0
 		ModelLoadFailure = 1
-		ContextFailure = 2
+		  ContextFailure = 2
+		VocabFailure = 3
 	#tag EndEnum
 
 
