@@ -7,6 +7,7 @@ DesktopWindow=WindowMain;WindowMain.xojo_window;&h000000002D5B67FF;&h00000000000
 BuildSteps=Build Automation;Build Automation.xojo_code;&h000000005CC2EFFF;&h0000000000000000;false
 Module=Llama;Llama.xojo_code;&h00000000302A37FF;&h0000000000000000;false
 Class=Model;Llama/Model.xojo_code;&h0000000046AA3FFF;&h00000000302A37FF;false
+Class=ModelException;Llama/ModelException.xojo_code;&h00000000684CE7FF;&h00000000302A37FF;false
 DefaultWindow=WindowMain
 MajorVersion=1
 MinorVersion=0

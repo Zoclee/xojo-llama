@@ -25,17 +25,17 @@ Begin DesktopWindow WindowMain
    Type            =   0
    Visible         =   True
    Width           =   600
-   Begin DesktopButton ButtonTest
+   Begin DesktopButton ButtonOpenModel
       AllowAutoDeactivate=   True
       Bold            =   False
       Cancel          =   False
-      Caption         =   "Test"
+      Caption         =   "Open Model"
       Default         =   False
       Enabled         =   True
       FontName        =   "System"
       FontSize        =   0.0
       FontUnit        =   0
-      Height          =   27
+      Height          =   28
       Index           =   -2147483648
       Italic          =   False
       Left            =   20
@@ -56,15 +56,76 @@ Begin DesktopWindow WindowMain
       Visible         =   True
       Width           =   100
    End
+   Begin DesktopLabel LabelModelPath
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   27
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   132
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   True
+      LockTop         =   True
+      Multiline       =   False
+      Scope           =   0
+      Selectable      =   False
+      TabIndex        =   1
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   ""
+      TextAlignment   =   0
+      TextColor       =   &c000000
+      Tooltip         =   ""
+      Top             =   20
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      Width           =   448
+   End
 End
 #tag EndDesktopWindow
 
 #tag WindowCode
+	#tag Property, Flags = &h0
+		CurrentModel As Llama.Model
+	#tag EndProperty
+
+
 #tag EndWindowCode
 
-#tag Events ButtonTest
+#tag Events ButtonOpenModel
 	#tag Event
 		Sub Pressed()
+		  Var f As FolderItem
+		  Var dlg As new OpenFileDialog
+		  Var guffType As new FileType
+		  
+		  guffType.Name = "GPT-Generated Unified Format"
+		  guffType.Extensions = ".gguf"
+		  
+		  dlg.Filter = guffType
+		  
+		  f = dlg.ShowModal()
+		  
+		  if f <> nil then
+		    
+		    LabelModelPath.Text = "Loading model, please wait..."
+		    LabelModelPath.Refresh(true)
+		    
+		    try 
+		      CurrentModel = new Llama.Model(f)
+		      LabelModelPath.Text = CurrentModel.ModelPath.NativePath
+		    catch e As Llama.ModelException
+		      LabelModelPath.Text = e.Message
+		    end try 
+		    
+		  end if
 		  
 		End Sub
 	#tag EndEvent
