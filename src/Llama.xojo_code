@@ -27,6 +27,17 @@ Protected Module Llama
 	#tag EndMethod
 
 
+	#tag Structure, Name = Batch, Flags = &h0
+		n_tokens As Int32
+		  pad As Int32
+		  token As Ptr
+		  embd As Ptr
+		  pos As Ptr
+		  n_seq_id As Ptr
+		  seq_id As Ptr
+		logits As Ptr
+	#tag EndStructure
+
 	#tag Structure, Name = ContextParamsStruct, Flags = &h0
 		n_ctx As UInt32
 		  n_batch As UInt32
@@ -84,7 +95,10 @@ Protected Module Llama
 	#tag Enum, Name = ErrorEnum, Type = Integer, Flags = &h0
 		ModelLoadFailure = 1
 		  ContextFailure = 2
-		VocabFailure = 3
+		  VocabFailure = 3
+		  TooFewTokens = 4
+		  DecodeFailure = 5
+		SamplerFailure = 6
 	#tag EndEnum
 
 

@@ -88,6 +88,195 @@ Begin DesktopWindow WindowMain
       Visible         =   True
       Width           =   448
    End
+   Begin DesktopLabel LabelPrompt
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Enabled         =   False
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   20
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   20
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      Multiline       =   False
+      Scope           =   2
+      Selectable      =   False
+      TabIndex        =   2
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   "Prompt:"
+      TextAlignment   =   0
+      TextColor       =   &c000000
+      Tooltip         =   ""
+      Top             =   60
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      Width           =   100
+   End
+   Begin DesktopTextArea TextPrompt
+      AllowAutoDeactivate=   True
+      AllowFocusRing  =   True
+      AllowSpellChecking=   True
+      AllowStyledText =   True
+      AllowTabs       =   False
+      BackgroundColor =   &cFFFFFF
+      Bold            =   False
+      Enabled         =   False
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Format          =   ""
+      HasBorder       =   True
+      HasHorizontalScrollbar=   False
+      HasVerticalScrollbar=   True
+      Height          =   61
+      HideSelection   =   True
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   20
+      LineHeight      =   0.0
+      LineSpacing     =   1.0
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   True
+      LockTop         =   True
+      MaximumCharactersAllowed=   0
+      Multiline       =   True
+      ReadOnly        =   False
+      Scope           =   2
+      TabIndex        =   3
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   ""
+      TextAlignment   =   0
+      TextColor       =   &c000000
+      Tooltip         =   ""
+      Top             =   92
+      Transparent     =   False
+      Underline       =   False
+      UnicodeMode     =   1
+      ValidationMask  =   ""
+      Visible         =   True
+      Width           =   560
+   End
+   Begin DesktopLabel LabelResponse
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Enabled         =   False
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   20
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   20
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      Multiline       =   False
+      Scope           =   2
+      Selectable      =   False
+      TabIndex        =   4
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   "Response"
+      TextAlignment   =   0
+      TextColor       =   &c000000
+      Tooltip         =   ""
+      Top             =   204
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      Width           =   100
+   End
+   Begin DesktopTextArea TextResponse
+      AllowAutoDeactivate=   True
+      AllowFocusRing  =   True
+      AllowSpellChecking=   True
+      AllowStyledText =   True
+      AllowTabs       =   False
+      BackgroundColor =   &cFFFFFF
+      Bold            =   False
+      Enabled         =   False
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Format          =   ""
+      HasBorder       =   True
+      HasHorizontalScrollbar=   False
+      HasVerticalScrollbar=   True
+      Height          =   144
+      HideSelection   =   True
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   20
+      LineHeight      =   0.0
+      LineSpacing     =   1.0
+      LockBottom      =   True
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   True
+      LockTop         =   True
+      MaximumCharactersAllowed=   0
+      Multiline       =   True
+      ReadOnly        =   True
+      Scope           =   2
+      TabIndex        =   5
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   ""
+      TextAlignment   =   0
+      TextColor       =   &c000000
+      Tooltip         =   ""
+      Top             =   236
+      Transparent     =   False
+      Underline       =   False
+      UnicodeMode     =   1
+      ValidationMask  =   ""
+      Visible         =   True
+      Width           =   560
+   End
+   Begin DesktopButton ButtonSend
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Cancel          =   False
+      Caption         =   "Send"
+      Default         =   False
+      Enabled         =   False
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   27
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   20
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      MacButtonStyle  =   0
+      Scope           =   2
+      TabIndex        =   6
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Tooltip         =   ""
+      Top             =   165
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      Width           =   100
+   End
 End
 #tag EndDesktopWindow
 
@@ -121,8 +310,38 @@ End
 		    try 
 		      CurrentModel = new Llama.Model(f)
 		      LabelModelPath.Text = CurrentModel.ModelPath.NativePath
+		      LabelPrompt.Enabled = true
+		      TextPrompt.Enabled = true
+		      ButtonSend.Enabled = true
+		      LabelResponse.Enabled = true
+		      TextResponse.Enabled = true
 		    catch e As Llama.ModelException
 		      LabelModelPath.Text = e.Message
+		      LabelPrompt.Enabled = false
+		      TextPrompt.Enabled = false
+		      ButtonSend.Enabled = false
+		      LabelResponse.Enabled = false
+		      TextResponse.Enabled = false
+		    end try 
+		    
+		  end if
+		  
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events ButtonSend
+	#tag Event
+		Sub Pressed()
+		  if TextPrompt.Text.Trim() <> "" then
+		    
+		    TextResponse.Text = "Waiting for response..."
+		    TextResponse.Refresh(true)
+		    
+		    try 
+		      TextResponse.Text = CurrentModel.Infer(TextPrompt.Text)
+		      TextPrompt.Text = ""
+		    catch e As Llama.ModelException
+		      TextResponse.Text = e.Message
 		    end try 
 		    
 		  end if
