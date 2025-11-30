@@ -65,11 +65,6 @@ End
 #tag Events ButtonTest
 	#tag Event
 		Sub Pressed()
-		  Var initSuccess As Boolean
-		  
-		  initSuccess = Llama.BackendInit()
-		  
-		  Llama.BackendFree()
 		  
 		End Sub
 	#tag EndEvent
