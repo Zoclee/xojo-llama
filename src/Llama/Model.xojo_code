@@ -7,8 +7,12 @@ Protected Class Model
 		  Soft Declare Sub llama_context_default_params Lib "llama.dll" (Byref params As Llama.ContextParamsStruct)
 		  Soft Declare Function llama_new_context_with_model Lib "llama.dll" (model As Ptr, ByRef params As Llama.ContextParamsStruct) As Ptr
 		  Soft Declare Function llama_model_get_vocab Lib "llama.dll" (model As Ptr) As Ptr
+		  Soft Declare Function llama_vocab_eos Lib "llama.dll" (vocab As Ptr) As Int32
+		  Soft Declare Function llama_sampler_init_greedy Lib "llama.dll" () As Ptr
 		  
 		  Var e As Llama.ModelException
+		  
+		  mInputTokenBuffer = New MemoryBlock(mMaxInputTokens * 4)  ' 4 bytes per token (Int32)
 		  
 		  ModelPath = initModelPath
 		  
@@ -42,7 +46,20 @@ Protected Class Model
 		    e.ErrorNumber = Integer(ErrorEnum.VocabFailure)
 		    e.Message = "Failed to get vocab."
 		    Raise e
+		  else
+		    mEOSToken = llama_vocab_eos(mVocabPtr)
 		  End If
+		  
+		  ' --- Create sampler ---
+		  
+		  mSamplerPtr = llama_sampler_init_greedy()
+		  If mSamplerPtr = Nil Then
+		    e = new Llama.ModelException()
+		    e.ErrorNumber = Integer(ErrorEnum.SamplerFailure)
+		    e.Message = "Failed to create sampler."
+		    Raise e
+		  End If
+		  
 		  
 		  
 		End Sub
@@ -52,6 +69,12 @@ Protected Class Model
 		Sub Destructor()
 		  Soft Declare Sub llama_free_model Lib "llama.dll" (model As Ptr)
 		  Soft Declare Sub llama_free Lib "llama.dll" (ctx As Ptr)
+		  Soft Declare Sub llama_sampler_free Lib "llama.dll" (smpl As Ptr)
+		  
+		  if mSamplerPtr <> nil then
+		    llama_sampler_free(mSamplerPtr)
+		    mSamplerPtr = nil
+		  end if
 		  
 		  if mContextPtr <> nil then
 		    llama_free(mContextPtr)
@@ -63,7 +86,6 @@ Protected Class Model
 		    mModelPtr = nil
 		  end if
 		  
-		  
 		End Sub
 	#tag EndMethod
 
@@ -72,38 +94,39 @@ Protected Class Model
 		  Soft Declare Function llama_tokenize Lib "llama.dll" (vocab As Ptr, text As CString, text_len As Int32, tokens As Ptr, n_max_tokens As Int32, add_special As Boolean, parse_special As Boolean) As Int32
 		  Soft Declare Function llama_batch_get_one Lib "llama.dll" (tokens As Ptr, n_tokens As Int32, pos_0 As Int32, seq_id As Int32) As Llama.Batch
 		  Soft Declare Function llama_decode Lib "llama.dll" (ctx As Ptr, ByRef batch As Llama.Batch) As Int32
-		  Soft Declare Function llama_sampler_init_greedy Lib "llama.dll" () As Ptr
-		  Soft Declare Function llama_vocab_eos Lib "llama.dll" (vocab As Ptr) As Int32
 		  Soft Declare Function llama_sampler_sample Lib "llama.dll" (smpl As Ptr, ctx As Ptr, idx As Int32) As Int32
 		  Soft Declare Function llama_token_to_piece Lib "llama.dll" (vocab As Ptr, token As Int32, buf As Ptr, length As Int32, lstrip As Int32, special As Boolean) As Int32
 		  Soft Declare Sub llama_sampler_accept Lib "llama.dll" (smpl As Ptr, token As Int32)
-		  Soft Declare Sub llama_sampler_free Lib "llama.dll" (smpl As Ptr)
 		  
+		  Var result As String
 		  Var e As Llama.ModelException
+		  Var promptUTF8 As String
+		  Var numTokens As Int32
+		  Var promptBatch As Llama.Batch
+		  Var rc As Int32
+		  Var nextToken As Int32
+		  Var genTokenMB As New MemoryBlock(4)  ' Reusable 1-token buffer for generation
+		  Var buffer As MemoryBlock
+		  Var pieceLen As Int32
+		  Var genBatch As Llama.Batch
+		  
+		  result = ""
 		  
 		  ' --- Tokenize the prompt ---
-		  Var tokenMB As New MemoryBlock(MaxTokens * 4)  ' 4 bytes per token (Int32)
-		  Var tokenPtr As Ptr = tokenMB
 		  
-		  Var promptUTF8 As String = prompt.ConvertEncoding(Encodings.UTF8)
-		  
-		  Dim numTokens As Int32 = llama_tokenize(mVocabPtr, promptUTF8, promptUTF8.LenB, tokenPtr, MaxTokens, True, False)
+		  promptUTF8 = prompt.ConvertEncoding(Encodings.UTF8)
+		  numTokens = llama_tokenize(mVocabPtr, promptUTF8, promptUTF8.LenB, mInputTokenBuffer, mMaxInputTokens, True, False)
 		  If numTokens < 0 Then
-		    Var needed As Int32 = -numTokens
 		    e = new Llama.ModelException()
 		    e.ErrorNumber = Integer(ErrorEnum.TooFewTokens)
-		    e.Message = "Token buffer too small, need " + needed.ToString + " tokens."
+		    e.Message = "Token buffer too small, need " + Str(-numTokens) + " tokens."
 		    Raise e
 		  End If
 		  
-		  ' ========================
-		  ' IMPORTANT: run prompt through llama_decode
-		  ' ========================
+		  ' --- Run prompt through llama_decode ---
 		  
-		  var promptBatch As Llama.Batch
-		  promptBatch = llama_batch_get_one(tokenPtr, numTokens, 0 , 0)
-		  
-		  Dim rc As Int32 = llama_decode(mContextPtr, promptBatch)
+		  promptBatch = llama_batch_get_one(mInputTokenBuffer, numTokens, 0 , 0)
+		  rc = llama_decode(mContextPtr, promptBatch)
 		  If rc <> 0 Then
 		    e = new Llama.ModelException()
 		    e.ErrorNumber = Integer(ErrorEnum.DecodeFailure)
@@ -111,54 +134,34 @@ Protected Class Model
 		    Raise e
 		  End If
 		  
-		  ' ========================
-		  ' Generate response
-		  ' ========================
+		  ' --- Generate response ---
 		  
-		  Const maxTokensToGenerate As Int32 = 2048
-		  
-		  Var smpl As Ptr = llama_sampler_init_greedy()
-		  If smpl = Nil Then
-		    e = new Llama.ModelException()
-		    e.ErrorNumber = Integer(ErrorEnum.SamplerFailure)
-		    e.Message = "Failed to create sampler."
-		    Raise e
-		  End If
-		  
-		  Var eosToken As Int32 = llama_vocab_eos(mVocabPtr)
-		  
-		  ' Reusable 1-token buffer for generation
-		  Var genTokenMB As New MemoryBlock(4)  ' Int32
-		  Var genTokenPtr As Ptr = genTokenMB
-		  
-		  Dim result As String = ""
-		  
-		  For i As Integer = 0 To maxTokensToGenerate - 1
+		  For i As Integer = 0 To mMaxOutputTokens - 1
 		    
 		    ' 1) Sample from logits of last token in context
-		    Dim nextToken As Int32 = llama_sampler_sample(smpl, mContextPtr, -1)
+		    nextToken = llama_sampler_sample(mSamplerPtr, mContextPtr, -1)
 		    If nextToken < 0 Then Exit For
 		    
 		    ' 2) End-of-sequence?
-		    If nextToken = eosToken Or nextToken = 0 Then Exit For
+		    If nextToken = mEOSToken Or nextToken = 0 Then Exit For
 		    
 		    ' 3) Convert token to text
-		    Var buffer As New MemoryBlock(256)
-		    Dim pieceLen As Int32 = llama_token_to_piece(mVocabPtr, nextToken, buffer, 256, 0, False)
+		    buffer= New MemoryBlock(256)
+		    pieceLen = llama_token_to_piece(mVocabPtr, nextToken, buffer, 256, 0, False)
 		    If pieceLen > 0 Then
 		      result = result + DefineEncoding(buffer.CString(0), Encodings.UTF8)
 		    End If
 		    
 		    ' 4) Accept token into sampler state
-		    llama_sampler_accept(smpl, nextToken)
+		    llama_sampler_accept(mSamplerPtr, nextToken)
 		    
 		    ' 5) Put this token into the 1-element buffer
 		    genTokenMB.Int32Value(0) = nextToken
 		    
 		    ' 6) Build batch for this single token
-		    Dim genBatch As Llama.Batch = llama_batch_get_one(genTokenPtr, 1, 0, 0)
+		    genBatch = llama_batch_get_one(genTokenMB, 1, 0, 0)
 		    
-		    //' 7) Decode it – extend KV cache with this token
+		    ' 7) Decode it – extend KV cache with this token
 		    rc = llama_decode(mContextPtr, genBatch)
 		    If rc <> 0 Then
 		      e = new Llama.ModelException()
@@ -169,8 +172,6 @@ Protected Class Model
 		    
 		  Next
 		  
-		  llama_sampler_free(smpl)
-		  
 		  return result
 		  
 		  
@@ -178,9 +179,36 @@ Protected Class Model
 	#tag EndMethod
 
 
-	#tag Property, Flags = &h0
-		MaxTokens As Int32 = 512
-	#tag EndProperty
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return mMaxInputTokens
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  mMaxInputTokens = value
+			  
+			  mInputTokenBuffer = New MemoryBlock(mMaxInputTokens * 4)  ' 4 bytes per token (Int32)
+			  
+			End Set
+		#tag EndSetter
+		MaxInputTokens As Int32
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return mMaxOutputTokens
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  mMaxOutputTokens = value
+			End Set
+		#tag EndSetter
+		MaxOutputTokens As Int32
+	#tag EndComputedProperty
 
 	#tag Property, Flags = &h21
 		Private mContextParams As ContextParamsStruct
@@ -188,6 +216,22 @@ Protected Class Model
 
 	#tag Property, Flags = &h21
 		Private mContextPtr As Ptr
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mEOSToken As Int32
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mInputTokenBuffer As MemoryBlock
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mMaxInputTokens As Int32 = 512
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mMaxOutputTokens As Int32 = 2048
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
@@ -200,6 +244,10 @@ Protected Class Model
 
 	#tag Property, Flags = &h0
 		ModelPath As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		mSamplerPtr As Ptr
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
