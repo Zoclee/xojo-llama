@@ -14,16 +14,12 @@
 			Begin BuildStepList Windows
 				Begin BuildProjectStep Build
 				End
-				Begin CopyFilesBuildStep CopyLlamaBinFiles
+				Begin CopyFilesBuildStep CopyLlamaBinaries
 					AppliesTo = 0
 					Architecture = 0
 					Target = 0
 					Destination = 0
 					Subdirectory = 
-					FolderItem = Li4vLi4vYmluL2dnbWwtY3B1LXNhbmR5YnJpZGdlLmRsbA==
-					FolderItem = Li4vLi4vYmluL2dnbWwtY3B1LXNhcHBoaXJlcmFwaWRzLmRsbA==
-					FolderItem = Li4vLi4vYmluL2dnbWwtY3B1LXNreWxha2V4LmRsbA==
-					FolderItem = Li4vLi4vYmluL2dnbWwtY3B1LXNzZTQyLmRsbA==
 					FolderItem = Li4vLi4vYmluL2dnbWwtY3B1LXg2NC5kbGw=
 					FolderItem = Li4vLi4vYmluL2dnbWwtY3VkYS5kbGw=
 					FolderItem = Li4vLi4vYmluL2dnbWwtcnBjLmRsbA==
@@ -40,6 +36,10 @@
 					FolderItem = Li4vLi4vYmluL2dnbWwtY3B1LWFsZGVybGFrZS5kbGw=
 					FolderItem = Li4vLi4vYmluL2dnbWwtY3B1LWhhc3dlbGwuZGxs
 					FolderItem = Li4vLi4vYmluL2dnbWwtY3B1LWljZWxha2UuZGxs
+					FolderItem = Li4vLi4vYmluL2dnbWwtY3B1LXNhbmR5YnJpZGdlLmRsbA==
+					FolderItem = Li4vLi4vYmluL2dnbWwtY3B1LXNhcHBoaXJlcmFwaWRzLmRsbA==
+					FolderItem = Li4vLi4vYmluL2dnbWwtY3B1LXNreWxha2V4LmRsbA==
+					FolderItem = Li4vLi4vYmluL2dnbWwtY3B1LXNzZTQyLmRsbA==
 				End
 			End
 #tag EndBuildAutomation
